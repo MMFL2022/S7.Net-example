@@ -2,10 +2,7 @@
 using S7NetWrapper;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace HmiExample.PlcConnectivity
@@ -19,17 +16,17 @@ namespace HmiExample.PlcConnectivity
 
         public static Plc Instance
         {
-            get
-            {
-                return _instance.Value;
+            get => _instance.Value;
             }
-        } 
 
         #endregion
 
         #region Public properties
 
-        public ConnectionStates ConnectionState { get { return plcDriver != null ? plcDriver.ConnectionState : ConnectionStates.Offline; } }
+        public ConnectionStates ConnectionState
+        {
+            get => plcDriver != null ? plcDriver.ConnectionState : ConnectionStates.Offline;
+        }
 
         public DB1 Db1 { get; set; }        
 
@@ -51,7 +48,7 @@ namespace HmiExample.PlcConnectivity
 
         private Plc()
         {
-            Db1 = new DB1();
+            Db50 = new DB50();
             timer.Interval = 100; // ms
             timer.Elapsed += timer_Elapsed;
             timer.Enabled = true;
@@ -71,6 +68,7 @@ namespace HmiExample.PlcConnectivity
 
             timer.Enabled = false;
             CycleReadTime = DateTime.Now - lastReadTime;
+
             try            
             {                
                 RefreshTags();
@@ -91,7 +89,7 @@ namespace HmiExample.PlcConnectivity
             if (!IsValidIp(ipAddress))
             {               
                 throw new ArgumentException("Ip address is not valid");                
-            }
+
             plcDriver = new S7NetPlcDriver(CpuType.S7300, ipAddress, 0, 2);
             plcDriver.Connect();          
         }
@@ -99,28 +97,26 @@ namespace HmiExample.PlcConnectivity
         public void Disconnect()
         {
             if (plcDriver == null || this.ConnectionState == ConnectionStates.Offline)
-            {
                 return;
-            }            
+
             plcDriver.Disconnect();            
         }
 
         public void Write(string name, object value)
         {
             if (plcDriver == null || plcDriver.ConnectionState != ConnectionStates.Online)
-            {
                 return;
-            }
+
             Tag tag = new Tag(name, value);
-            List<Tag> tagList = new List<Tag>();
-            tagList.Add(tag);
-            plcDriver.WriteItems(tagList);
+            List<Tag> tagList = new List<Tag>
+            {
+                tag
+            };
         }
 
         public void Write(List<Tag> tags)
         {
             if (plcDriver == null || plcDriver.ConnectionState != ConnectionStates.Online)
-            {
                 return;
             }
             plcDriver.WriteItems(tags);
@@ -134,6 +130,7 @@ namespace HmiExample.PlcConnectivity
         {
             IPAddress ip;
             bool valid = !string.IsNullOrEmpty(addr) && IPAddress.TryParse(addr, out ip);
+
             return valid;
         }
 
@@ -143,7 +140,5 @@ namespace HmiExample.PlcConnectivity
         }
 
         #endregion
-
-        
     }
 }
