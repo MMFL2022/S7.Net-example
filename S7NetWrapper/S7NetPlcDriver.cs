@@ -12,16 +12,16 @@ namespace S7NetWrapper
     {
         #region Private fields
 
-        Plc client;     
+        Plc client;
 
-        #endregion     
+        #endregion
 
         #region Constructor
 
         public S7NetPlcDriver(CpuType cpu, string ip, short rack, short slot)
         {
             client = new Plc(cpu, ip, rack, slot);
-        } 
+        }
 
         #endregion
 
@@ -34,25 +34,28 @@ namespace S7NetWrapper
             private set { _connectionState = value; }
         }
 
-        public void Connect()
+        public async Task ConnectAsync()
         {
             ConnectionState = ConnectionStates.Connecting;
-            var error = client.Open();
-            if (error != ErrorCode.NoError)
-            {
-                ConnectionState = ConnectionStates.Offline;
-                throw new Exception(error.ToString());
-            }
+            //var error = client.Open();
+            //if (error != ErrorCode.NoError)
+            //{
+            //    ConnectionState = ConnectionStates.Offline;
+            //    throw new Exception(error.ToString());
+            //}
+            //client.Open();
+            await client.OpenAsync();
             ConnectionState = ConnectionStates.Online;
         }
 
         public void Disconnect()
         {
             ConnectionState = ConnectionStates.Offline;
+            //client.Close();
             client.Close();
-        }        
+        }
 
-        public List<Tag> ReadItems(List<Tag> itemList)
+        public async Task<List<Tag>> ReadItemsAsync(List<Tag> itemList)
         {
             if (this.ConnectionState != ConnectionStates.Online)
             {
@@ -63,23 +66,41 @@ namespace S7NetWrapper
             foreach (var item in itemList)
             {
                 Tag tag = new Tag(item.ItemName);
-                var result = client.Read(item.ItemName);
+                //var result = client.Read(item.ItemName);
+                var result = await client.ReadAsync(item.ItemName);
                 if (result is ErrorCode && (ErrorCode)result != ErrorCode.NoError)
-                {
                     throw new Exception(((ErrorCode)result).ToString() + "\n" + "Tag: " + tag.ItemName);
-                }
+
                 tag.ItemValue = result;
                 tags.Add(tag);
             }
+
             return tags;
         }
 
-        public void WriteItems(List<Tag> itemList)
+        public async Task ReadClassAsync(object sourceClass, int db)
+        {
+            try
+            {
+                //client.ReadClass(sourceClass, db);
+                await client.ReadClassAsync(sourceClass, db);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        public async Task WriteClassAsync(object sourceClass, int db)
+        {
+            //client.WriteClass(sourceClass, db);
+            await client.WriteClassAsync(sourceClass, db);
+        }
+
+        public async Task WriteItemsAsync(List<Tag> itemList)
         {
             if (this.ConnectionState != ConnectionStates.Online)
-            {
                 throw new Exception("Can't write, the client is disconnected.");
-            }
 
             foreach (var tag in itemList)
             {
@@ -93,24 +114,26 @@ namespace S7NetWrapper
                 {
                     value = (bool)tag.ItemValue ? 1 : 0;
                 }
-                var result = client.Write(tag.ItemName, value);
-                if (result is ErrorCode && (ErrorCode)result != ErrorCode.NoError)
-                {
-                    throw new Exception(((ErrorCode)result).ToString() + "\n" + "Tag: " + tag.ItemName);
-                }
+                //client.Write(tag.ItemName, value);
+                await client.WriteAsync(tag.ItemName, value);
+                //var result = client.Write(tag.ItemName, value);
+                //if (result is ErrorCode && (ErrorCode)result != ErrorCode.NoError)
+                //{
+                //    throw new Exception(((ErrorCode)result).ToString() + "\n" + "Tag: " + tag.ItemName);
+                //}
             }
         }
 
-        public void ReadClass(object sourceClass, int db)
+        #endregion
+
+        public async Task<DateTime> ReadDateTimeAsync()
         {
-            client.ReadClass(sourceClass, db);
+            return await client.ReadClockAsync();
         }
 
-        public void WriteClass(object sourceClass, int db)
+        public async Task<byte> ReadStatusAsync()
         {
-            client.WriteClass(sourceClass, db);
-        }       
-
-        #endregion
+            return await client.ReadStatusAsync();
+        }
     }
 }

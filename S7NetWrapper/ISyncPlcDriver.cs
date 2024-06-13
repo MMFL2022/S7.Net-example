@@ -2,25 +2,30 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text; 
+using System.Text;
+using System.Threading.Tasks;
 #endregion
 
 namespace S7NetWrapper
 {
     public interface IPlcSyncDriver
-    {        
+    {
         ConnectionStates ConnectionState { get; }
-        
-        void Connect();
 
-        void Disconnect();        
+        Task ConnectAsync();
 
-        List<Tag> ReadItems(List<Tag> itemList);
+        void Disconnect();
 
-        void ReadClass(object sourceClass, int db);
+        Task<List<Tag>> ReadItemsAsync(List<Tag> itemList);
 
-        void WriteClass(object sourceClass, int db);      
-       
-        void WriteItems(List<Tag> itemList); 
-    }   
+        Task ReadClassAsync(object sourceClass, int db);
+
+        Task WriteClassAsync(object sourceClass, int db);
+
+        Task WriteItemsAsync(List<Tag> itemList);
+
+        Task<DateTime> ReadDateTimeAsync();
+
+        Task<byte> ReadStatusAsync();
+    }
 }

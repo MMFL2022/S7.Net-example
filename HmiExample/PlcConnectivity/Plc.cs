@@ -12,12 +12,12 @@ namespace HmiExample.PlcConnectivity
         #region Singleton
 
         // For implementation refer to: http://geekswithblogs.net/BlackRabbitCoder/archive/2010/05/19/c-system.lazylttgt-and-the-singleton-design-pattern.aspx        
-        private static readonly Lazy<Plc> _instance = new Lazy<Plc>(() => new Plc());       
+        private static readonly Lazy<Plc> _instance = new Lazy<Plc>(() => new Plc());
 
         public static Plc Instance
         {
             get => _instance.Value;
-            }
+        }
 
         #endregion
 
@@ -28,7 +28,7 @@ namespace HmiExample.PlcConnectivity
             get => plcDriver != null ? plcDriver.ConnectionState : ConnectionStates.Offline;
         }
 
-        public DB1 Db1 { get; set; }        
+        public DB50 Db50 { get; set; }
 
         public TimeSpan CycleReadTime { get; private set; }
 
@@ -53,27 +53,25 @@ namespace HmiExample.PlcConnectivity
             timer.Elapsed += timer_Elapsed;
             timer.Enabled = true;
             lastReadTime = DateTime.Now;
-        }          
+        }
 
         #endregion
 
         #region Event handlers
 
-        private void timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
-        {            
+        private async void timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
             if (plcDriver == null || plcDriver.ConnectionState != ConnectionStates.Online)
-            {
                 return;
-            }
 
             timer.Enabled = false;
             CycleReadTime = DateTime.Now - lastReadTime;
 
-            try            
-            {                
-                RefreshTags();
-            }            
-            finally 
+            try
+            {
+                await RefreshTagsAsync();
+            }
+            finally
             {
                 timer.Enabled = true;
                 lastReadTime = DateTime.Now;
@@ -84,14 +82,14 @@ namespace HmiExample.PlcConnectivity
 
         #region Public methods
 
-        public void Connect(string ipAddress) 
-        {           
+        public async Task ConnectAsync(string ipAddress)
+        {
             if (!IsValidIp(ipAddress))
-            {               
-                throw new ArgumentException("Ip address is not valid");                
+                throw new ArgumentException("Ip address is not valid");
 
             plcDriver = new S7NetPlcDriver(CpuType.S7300, ipAddress, 0, 2);
-            plcDriver.Connect();          
+
+            await plcDriver.ConnectAsync();
         }
 
         public void Disconnect()
@@ -99,10 +97,10 @@ namespace HmiExample.PlcConnectivity
             if (plcDriver == null || this.ConnectionState == ConnectionStates.Offline)
                 return;
 
-            plcDriver.Disconnect();            
+            plcDriver.Disconnect();
         }
 
-        public void Write(string name, object value)
+        public async Task WriteAsync(string name, object value)
         {
             if (plcDriver == null || plcDriver.ConnectionState != ConnectionStates.Online)
                 return;
@@ -112,17 +110,29 @@ namespace HmiExample.PlcConnectivity
             {
                 tag
             };
+
+            await plcDriver.WriteItemsAsync(tagList);
         }
 
-        public void Write(List<Tag> tags)
+        public async Task WriteAsync(List<Tag> tags)
         {
             if (plcDriver == null || plcDriver.ConnectionState != ConnectionStates.Online)
                 return;
-            }
-            plcDriver.WriteItems(tags);
+
+            await plcDriver.WriteItemsAsync(tags);
         }
 
-        #endregion        
+        #endregion
+
+        public async Task<DateTime> ReadDateTimeAsync()
+        {
+            return await plcDriver.ReadDateTimeAsync();
+        }
+
+        public async Task<byte> ReadStatusAsync()
+        {
+            return await plcDriver.ReadStatusAsync();
+        }
 
         #region Private methods
 
@@ -134,9 +144,9 @@ namespace HmiExample.PlcConnectivity
             return valid;
         }
 
-        private void RefreshTags()
+        private async Task RefreshTagsAsync()
         {
-            plcDriver.ReadClass(Db1, 1);
+            await plcDriver.ReadClassAsync(Db50, 50);
         }
 
         #endregion

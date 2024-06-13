@@ -29,6 +29,12 @@
                     <TextBlock x:Name="lblReadTime"/>
                 </StackPanel>
             </StatusBarItem>
+            <Separator/>
+            <StatusBarItem>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock x:Name="lblDateTime"/>
+                </StackPanel>
+            </StatusBarItem>
         </StatusBar>
 
         <!-- Real -->
@@ -50,6 +56,9 @@
         <Label Content="Set Dword variable:" HorizontalAlignment="Left" Margin="213,204,0,0" VerticalAlignment="Top" />
         <TextBox x:Name="txtSetDwordVariable" HorizontalAlignment="Left" Margin="318,204,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="113" TextChanged="txtSetSetDwordVariable_TextChanged"/>
         <Label x:Name="lblSetDwordVariable" Content="###.##" HorizontalAlignment="Left" Margin="436,204,0,0" VerticalAlignment="Top" />
+        <Label x:Name="lblBootedDateTime" Content="" HorizontalAlignment="Left" Margin="318,244,0,0" VerticalAlignment="Top" Width="113" />
+        <Button Content="Start" HorizontalAlignment="Left" Height="35" Margin="15,204,0,0" VerticalAlignment="Top" Width="113" Click="btnStart2_Click"/>
+        <Button Content="Start" HorizontalAlignment="Left" Height="35" Margin="15,247,0,0" VerticalAlignment="Top" Width="113" Click="btnStart3_Click"/>
 
     </Grid>
 </Window>

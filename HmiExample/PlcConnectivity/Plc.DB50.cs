@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HmiExample.PlcConnectivity
 {
-    public class DB1
+    // ORDER OF THE PROPERTIES NEEDS TO MATCH THE DB IN THE PLC!!!!!!
+    public class DB50
     {
         /// <summary>
-        /// DB1.DBX0.0
+        /// DB50.DBX0.0
         /// </summary>
         public bool BitVariable0 { get; set; }
         public bool BitVariable1 { get; set; }
@@ -21,7 +18,7 @@ namespace HmiExample.PlcConnectivity
         public bool BitVariable7 { get; set; }
 
         /// <summary>
-        /// DB1.DBX1.0
+        /// DB50.DBX1.0
         /// </summary>
         public bool BitVariable10 { get; set; }
         public bool BitVariable11 { get; set; }
@@ -33,23 +30,26 @@ namespace HmiExample.PlcConnectivity
         public bool BitVariable17 { get; set; }
 
         /// <summary>
-        /// DB1.DBW2
+        /// DB50.DBW2
         /// </summary>
         public short IntVariable { get; set; }
 
         /// <summary>
-        /// DB1.DBD4
+        /// DB50.DBD4
         /// </summary>
-        public double RealVariable { get; set; }
+        public float RealVariable { get; set; }
 
         /// <summary>
-        /// DB1.DBD8
+        /// DB50.DBD8
         /// </summary>
         public int DIntVariable { get; set; }
 
         /// <summary>
-        /// DB1.DBD12
+        /// DB50.DBD12
         /// </summary>
-        public ushort DWordVariable { get; set; }
+        //public ushort DWordVariable { get; set; }
+
+        [S7.Net.Types.S7DateTime(S7.Net.Types.S7DateTimeType.DT)]
+        public DateTime BootedDateTime { get; set; }
     }
 }

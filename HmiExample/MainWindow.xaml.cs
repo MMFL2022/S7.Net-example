@@ -2,22 +2,12 @@
 using HmiExample.PlcConnectivity;
 using S7NetWrapper;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Threading;
-using HmiExample.Properties; 
+using HmiExample.Properties;
 #endregion
 
 namespace HmiExample
@@ -43,22 +33,29 @@ namespace HmiExample
             btnConnect.IsEnabled = Plc.Instance.ConnectionState == ConnectionStates.Offline;
             btnDisconnect.IsEnabled = Plc.Instance.ConnectionState != ConnectionStates.Offline;
             lblConnectionState.Text = Plc.Instance.ConnectionState.ToString();
-            ledMachineInRun.Fill = Plc.Instance.Db1.BitVariable0 ? Brushes.Green : Brushes.Gray;
-            lblSpeed.Content = Plc.Instance.Db1.IntVariable;
-            lblTemperature.Content = Plc.Instance.Db1.RealVariable;
-            lblAutomaticSpeed.Content = Plc.Instance.Db1.DIntVariable;
-            lblSetDwordVariable.Content = Plc.Instance.Db1.DWordVariable;
+            ledMachineInRun.Fill = Plc.Instance.Db50.BitVariable0 ? Brushes.Green : Brushes.Gray;
+            lblSpeed.Content = Plc.Instance.Db50.IntVariable;
+            lblTemperature.Content = Plc.Instance.Db50.RealVariable;
+            lblAutomaticSpeed.Content = Plc.Instance.Db50.DIntVariable;
+            //lblSetDwordVariable.Content = Plc.Instance.Db50.DWordVariable;
+            lblBootedDateTime.Content = Plc.Instance.Db50.BootedDateTime.ToString();
             // statusbar
             lblReadTime.Text = Plc.Instance.CycleReadTime.TotalMilliseconds.ToString(CultureInfo.InvariantCulture);
         }
 
-        private void btnConnect_Click(object sender, RoutedEventArgs e)
+        private async void btnConnect_Click(object sender, RoutedEventArgs e)
         {
             try
             {                
-                Plc.Instance.Connect(txtIpAddress.Text);
+                await Plc.Instance.ConnectAsync(txtIpAddress.Text);
                 Settings.Default.IpAddress = txtIpAddress.Text;
                 Settings.Default.Save();
+
+                var plcDateTime = await Plc.Instance.ReadDateTimeAsync();
+                lblDateTime.Text = plcDateTime.ToString();
+
+                var plcStatus = await Plc.Instance.ReadStatusAsync();
+                Console.WriteLine(plcStatus.ToString());
             }
             catch(Exception exc)
             {
@@ -87,7 +84,45 @@ namespace HmiExample
         {
             try
             {
-                Plc.Instance.Write(PlcTags.BitVariable, 1);
+                Plc.Instance.WriteAsync(PlcTags.BitVariable, 1);
+            }
+            catch (Exception exc)
+            {
+                MessageBox.Show(exc.Message);
+            }
+        }
+
+        /// <summary>
+        /// Writes a bit to 1
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private bool bit2 = false;
+        private void btnStart2_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                bit2 = !bit2;
+                Plc.Instance.WriteAsync(PlcTags.BitVariable1, bit2);
+            }
+            catch (Exception exc)
+            {
+                MessageBox.Show(exc.Message);
+            }
+        }
+
+        /// <summary>
+        /// Writes a bit to 1
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private bool bit3 = false;
+        private void btnStart3_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                bit3 = !bit3;
+                Plc.Instance.WriteAsync(PlcTags.BitVariable2, bit3);
             }
             catch (Exception exc)
             {
@@ -104,7 +139,7 @@ namespace HmiExample
         {
             try
             {
-                Plc.Instance.Write(PlcTags.BitVariable, 0);
+                Plc.Instance.WriteAsync(PlcTags.BitVariable, 0);
             }
             catch (Exception exc)
             {
@@ -118,7 +153,7 @@ namespace HmiExample
             bool canConvert = Double.TryParse(txtSetTemperature.Text, out realVar);
             if (canConvert)
             {
-                Plc.Instance.Write(PlcTags.DoubleVariable, realVar);
+                Plc.Instance.WriteAsync(PlcTags.DoubleVariable, realVar);
             }
         }
 
@@ -128,7 +163,7 @@ namespace HmiExample
             bool canConvert = short.TryParse(txtSetSpeed.Text, out wordVar);
             if (canConvert)
             {
-                Plc.Instance.Write(PlcTags.IntVariable, wordVar);
+                Plc.Instance.WriteAsync(PlcTags.IntVariable, wordVar);
             }
         }
 
@@ -138,7 +173,7 @@ namespace HmiExample
             bool canConvert = int.TryParse(txtSetAutomaticSpeed.Text, out dintVar);
             if (canConvert)
             {
-                Plc.Instance.Write(PlcTags.DIntVariable, dintVar);
+                Plc.Instance.WriteAsync(PlcTags.DIntVariable, dintVar);
             }
         }
 
@@ -148,7 +183,7 @@ namespace HmiExample
             bool canConvert = ushort.TryParse(txtSetDwordVariable.Text, out dwordVar);
             if (canConvert)
             {
-                Plc.Instance.Write(PlcTags.DwordVariable, dwordVar);
+                Plc.Instance.WriteAsync(PlcTags.DwordVariable, dwordVar);
             }
         }
     }
